@@ -254,6 +254,10 @@ class BaseClient(object):
         options = None
         payload = None
 
+        hasOptions = False
+        if 'query' in entry and len(entry['query']) > 0:
+          hasOptions = True
+
         if 'input' in entry:
           if len(args) > 0:
             payload = args.pop()
