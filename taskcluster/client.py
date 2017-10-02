@@ -164,7 +164,7 @@ class BaseClient(object):
             raise exceptions.TaskclusterFailure(
                 'Requested method "%s" not found in API Reference' % methodName)
         apiArgs, options = self._processArgs(entry, *args, **kwargs)
-        route = self._subArgsInRoute(entry, apiArgs)
+        route = self._subArgsInRoute(entry, apiArgs, options)
         return self.options['baseUrl'] + '/' + route
 
     def buildSignedUrl(self, methodName, *args, **kwargs):
@@ -242,7 +242,7 @@ class BaseClient(object):
             else:
                 raise exceptions.TaskclusterFailure('Payload is required as last positional arg')
         apiArgs, options = self._processArgs(entry, *_args, **_kwargs)
-        route = self._subArgsInRoute(entry, apiArgs)
+        route = self._subArgsInRoute(entry, apiArgs, options)
         log.debug('Route is: %s', route)
 
         return self._makeHttpRequest(entry['method'], route, payload)
