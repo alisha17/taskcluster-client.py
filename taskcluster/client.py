@@ -163,7 +163,7 @@ class BaseClient(object):
         if not entry:
             raise exceptions.TaskclusterFailure(
                 'Requested method "%s" not found in API Reference' % methodName)
-        apiArgs = self._processArgs(entry, *args, **kwargs)
+        apiArgs, options = self._processArgs(entry, *args, **kwargs)
         route = self._subArgsInRoute(entry, apiArgs)
         return self.options['baseUrl'] + '/' + route
 
@@ -241,7 +241,7 @@ class BaseClient(object):
                 payload = _args.pop()
             else:
                 raise exceptions.TaskclusterFailure('Payload is required as last positional arg')
-        apiArgs = self._processArgs(entry, *_args, **_kwargs)
+        apiArgs, options = self._processArgs(entry, *_args, **_kwargs)
         route = self._subArgsInRoute(entry, apiArgs)
         log.debug('Route is: %s', route)
 
@@ -257,6 +257,7 @@ class BaseClient(object):
 
         reqArgs = entry['args']
         data = {}
+        options = None
 
         # These all need to be rendered down to a string, let's just check that
         # they are up front and fail fast
@@ -311,7 +312,7 @@ class BaseClient(object):
                 log.error(errMsg)
                 raise exceptions.TaskclusterFailure(errMsg)
 
-        return data
+        return data, options
 
     def _subArgsInRoute(self, entry, args, query=None):
         """ Given a route like "/task/<taskId>/artifacts" and a mapping like
