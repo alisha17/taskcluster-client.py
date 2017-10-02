@@ -313,9 +313,11 @@ class BaseClient(object):
 
         return data
 
-    def _subArgsInRoute(self, entry, args):
+    def _subArgsInRoute(self, entry, args, query=None):
         """ Given a route like "/task/<taskId>/artifacts" and a mapping like
-        {"taskId": "12345"}, return a string like "/task/12345/artifacts"
+        {"taskId": "12345"}, return a string like "/task/12345/artifacts".  If
+        specified, the dictionary passed as the `query` parameter will be
+        encoded into a query string and appended to the route used
         """
 
         route = entry['route']
@@ -327,6 +329,9 @@ class BaseClient(object):
                     'Arg %s not found in route for %s' % (arg, entry['name']))
             val = urllib.parse.quote(str(val).encode("utf-8"), '')
             route = route.replace("<%s>" % arg, val)
+
+        if query:
+          route += '?' + urllib.parse.urlencode(query)
 
         return route.lstrip('/')
 
