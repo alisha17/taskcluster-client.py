@@ -163,7 +163,7 @@ class BaseClient(object):
         if not entry:
             raise exceptions.TaskclusterFailure(
                 'Requested method "%s" not found in API Reference' % methodName)
-        apiArgs, options = self._processArgs(entry, *args, **kwargs)
+        apiArgs, options, payload = self._processArgs(entry, *args, **kwargs)
         route = self._subArgsInRoute(entry, apiArgs, options)
         return self.options['baseUrl'] + '/' + route
 
@@ -232,22 +232,13 @@ class BaseClient(object):
         """ This function is used to dispatch calls to other functions
         for a given API Reference entry"""
 
-        payload = None
-        _args = list(args)
-        _kwargs = copy.deepcopy(kwargs)
-
-        if 'input' in entry:
-            if len(args) > 0:
-                payload = _args.pop()
-            else:
-                raise exceptions.TaskclusterFailure('Payload is required as last positional arg')
-        apiArgs, options = self._processArgs(entry, *_args, **_kwargs)
+        apiArgs, options, payload = self._processArgs(entry, *_args, **_kwargs)
         route = self._subArgsInRoute(entry, apiArgs, options)
         log.debug('Route is: %s', route)
 
         return self._makeHttpRequest(entry['method'], route, payload)
 
-    def _processArgs(self, entry, *args, **kwargs):
+    def _processArgs(self, entry, *_args, **_kwargs):
         """ Take the list of required arguments, positional arguments
         and keyword arguments and return a dictionary which maps the
         value of the given arguments to the required parameters.
@@ -255,9 +246,19 @@ class BaseClient(object):
         Keyword arguments will overwrite positional arguments.
         """
 
+        args = list(_args)
+        kwargs = copy.deepcopy(_kwargs)
+
         reqArgs = entry['args']
         data = {}
         options = None
+        payload = None
+
+        if 'input' in entry:
+          if len(args) > 0:
+            payload = args.pop()
+          else:
+            raise exceptions.TaskclusterFailure('Payload is required as last positional arg')
 
         # These all need to be rendered down to a string, let's just check that
         # they are up front and fail fast
@@ -312,7 +313,7 @@ class BaseClient(object):
                 log.error(errMsg)
                 raise exceptions.TaskclusterFailure(errMsg)
 
-        return data, options
+        return data, options, payload
 
     def _subArgsInRoute(self, entry, args, options=None):
         """ Given a route like "/task/<taskId>/artifacts" and a mapping like
